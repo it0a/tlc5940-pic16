@@ -14,8 +14,8 @@
 #define SCLK_PORT   PORTCbits.RC3
 
 // SIN requires SDO
-// SDO maps to RC3 (See datasheet)
-// SCLK must be mapped to RC5.
+// SDO maps to RC5 (See datasheet)
+// SIN must be mapped to RC5.
 #define SIN_PORT    PORTCbits.RC5
 
 // XLAT has no requirements.
