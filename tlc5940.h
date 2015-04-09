@@ -1,7 +1,7 @@
 #ifndef TLC5940_H
 #define TLC5940_H
 
-#include <p16f877.h>
+#include <pic16f877.h>
 
 // GSCLK requires CCP1.
 // CCP1 maps to RC2 (See datasheet)
