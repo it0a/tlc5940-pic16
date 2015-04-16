@@ -1,82 +1,102 @@
 #include <xc.h>
 #include "tlc5940.h"
 
+void SPI_Init(void) {
+    SPI_CLK = 0; //output
+    SPI_SDI = 1; //input
+    SPI_SDO = 0; //output
+    SPI_SS = 0; //output
+
+    SSPSTATbits.CKE = 1;    //data transfer on rising edge clk
+    SSPSTATbits.SMP = 1;
+    SSPCONbits.SSPM = 0;    //SPI Master mode, clock = FOSC/4
+    SSPCONbits.CKP = 0; //Idle state for clock is a low level (Microwire alternate)
+    SSPCONbits.SSPEN = 1;
+    PIR1bits.SSPIF = 0; // Clear interrupt flag
+}
+
+int SPI_Write(unsigned char data) {
+    unsigned char TempVar;
+    TempVar = SSPSTATbits.BF; // Clears BF
+    PIR1bits.SSPIF = 0; // Clear interrupt flag
+    SSPBUF = data; // write byte to SSP1BUF register
+    while(!PIR1bits.SSPIF) {}; // wait until bus cycle complete
+    return ( 0 ); // if WCOL bit is not set return non-negative#
+}
+
 void TLC5940_Init(void) {
     // Set as outputs
-    __TLC_BLANK_DIR = __TLC_OUTPUT;
-    __TLC_GSCLK_DIR = __TLC_OUTPUT;
-    __TLC_SCLK_DIR = __TLC_OUTPUT;
-    __TLC_SIN_DIR = __TLC_OUTPUT;
-    __TLC_VPRG_DIR = __TLC_OUTPUT;
-    __TLC_XLAT_DIR = __TLC_OUTPUT;
+    __TLC_BLANK_DIR = 0;
+    __TLC_GSCLK_DIR = 0;
+    __TLC_SCLK_DIR = 0;
+    __TLC_SIN_DIR = 0;
+    __TLC_VPRG_DIR = 0;
+    __TLC_XLAT_DIR = 0;
     // Initial values from programming flow chart
-    __TLC_BLANK = __TLC_HIGH;
-    __TLC_GSCLK = __TLC_LOW;
-    __TLC_SCLK = __TLC_LOW;
-    __TLC_SIN = __TLC_LOW;
-    __TLC_VPRG = __TLC_HIGH;
-    __TLC_XLAT = __TLC_LOW;
+    __TLC_BLANK = 1;
+    __TLC_GSCLK = 0;
+    __TLC_SCLK = 0;
+    __TLC_SIN = 0;
+    __TLC_VPRG = 1;
+    __TLC_XLAT = 0;
     //
+    SPI_Init();
     TLC5940_ClockInDC();
+    TLC5940_SetGS_GW_PWM_Initial();
+}
+
+void TLC5940_PulseXLAT(void) {
+    __TLC_XLAT = 1;
+    __TLC_XLAT = 0;
 }
 
 void TLC5940_ClockInDC(void) {
-    unsigned char counter = 0;
-    __TLC_SIN = __TLC_HIGH;
-    __TLC_VPRG = __TLC_HIGH;
-    for(;;) {
-        if (counter > __TLC_DC_COUNTER_MAX) {
-            __TLC_XLAT = __TLC_HIGH;
-            __TLC_XLAT = __TLC_LOW;
-            break;
-        } else {
-            if (dcData[counter]) {
-                __TLC_SIN = __TLC_HIGH;
-            } else {
-                __TLC_SIN = __TLC_LOW;
-            }
-            __TLC_SCLK = __TLC_HIGH;
-            __TLC_SCLK = __TLC_LOW;
-            counter++;
-        }
+    __TLC_SIN = 1;
+    __TLC_VPRG = 1;
+    for(dcData_t i = 0; i < __TLC_DC_SIZE; i++) {
+        SPI_Write(dcData[i]);
     }
+    TLC5940_PulseXLAT();
 }
 
-void TLC5940_SetGS_GW_PWM(void) {
+void TLC5940_SetGS_GW_PWM_Initial(void) {
     unsigned char firstCycleFlag = 0;
     unsigned short GSCLK_Counter = 0;
     unsigned char Data_Counter = 0;
-    if (__TLC_VPRG == __TLC_HIGH) {
-        __TLC_VPRG = __TLC_LOW;
+    if (__TLC_VPRG == 1) {
+        __TLC_VPRG = 0;
         firstCycleFlag = 1;
     }
-    __TLC_BLANK = __TLC_LOW;
+    __TLC_BLANK = 0;
     for (;;) {
         if (GSCLK_Counter > __TLC_GSCLK_COUNTER_MAX) {
-            __TLC_BLANK = __TLC_HIGH;
-            __TLC_XLAT = __TLC_HIGH;
-            __TLC_XLAT = __TLC_LOW;
+            __TLC_BLANK = 1;
+            TLC5940_PulseXLAT();
             if (firstCycleFlag) {
-                __TLC_SCLK = __TLC_HIGH;
-                __TLC_SCLK = __TLC_LOW;
+                __TLC_SCLK = 1;
+                __TLC_SCLK = 0;
                 firstCycleFlag = 0;
             }
             break;
         } else {
             if (!(Data_Counter > __TLC_DATA_COUNTER_MAX)) {
                 if (1) {
-                    __TLC_SIN = __TLC_HIGH;
+                    __TLC_SIN = 0;
                 } else {
-                    __TLC_SIN = __TLC_LOW;
+                    __TLC_SIN = 0;
                 }
-                __TLC_SCLK = __TLC_HIGH;
-                __TLC_SCLK = __TLC_LOW;
+                __TLC_SCLK = 1;
+                __TLC_SCLK = 0;
                 Data_Counter++;
             }
         }
-        __TLC_GSCLK = __TLC_HIGH;
-        __TLC_GSCLK = __TLC_LOW;
+        __TLC_GSCLK = 1;
+        __TLC_GSCLK = 0;
         GSCLK_Counter++;
     }
 }
 
+void interrupt high_isr(void) {
+    TLC5940_PulseXLAT();
+    // KILL YOURSELF
+}

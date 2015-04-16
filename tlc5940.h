@@ -10,6 +10,12 @@
 
 #define __TLC_LED_N 16 * TLC5940_N
 
+#define SPI_CLK         TRISC3
+#define SPI_SDI         TRISC4
+#define SPI_SDO         TRISC5
+#define SPI_SS          TRISA5
+
+
 // GSCLK requires CCP1.
 // CCP1 maps to RC2 (See datasheet)
 // GSCLK must be mapped to RC2.
@@ -43,11 +49,6 @@
 #define __TLC_VPRG_DIR	TRISB2
 #define __TLC_VPRG	    RB2
 
-#define __TLC_OUTPUT 0
-#define __TLC_INPUT 1
-#define __TLC_LOW 0
-#define __TLC_HIGH 1
-
 #if (12 * TLC5940_N > 255)
 #define dcData_t unsigned short
 #else
@@ -60,7 +61,7 @@
 #define gsData_t unsigned char
 #endif
 
-#define __TLC_DC_SIZE 96
+#define __TLC_DC_SIZE 12
 #define __TLC_GS_SIZE 192
 #define __TLC_DC_COUNTER_MAX (__TLC_DC_SIZE * TLC5940_N - 1)
 #define __TLC_DATA_COUNTER_MAX (__TLC_GS_SIZE * TLC5940_N - 1)
@@ -68,22 +69,18 @@
 
 /// MSB--------->LSB
 unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
-    1, 1, 1, 1, 1, 1, // Channel 15
-    1, 1, 1, 1, 1, 1, // Channel 14
-    1, 1, 1, 1, 1, 1, // Channel 13
-    1, 1, 1, 1, 1, 1, // Channel 12
-    1, 1, 1, 1, 1, 1, // Channel 11
-    1, 1, 1, 1, 1, 1, // Channel 10
-    1, 1, 1, 1, 1, 1, // Channel 9
-    1, 1, 1, 1, 1, 1, // Channel 8
-    1, 1, 1, 1, 1, 1, // Channel 7
-    1, 1, 1, 1, 1, 1, // Channel 6
-    1, 1, 1, 1, 1, 1, // Channel 5
-    1, 1, 1, 1, 1, 1, // Channel 4
-    1, 1, 1, 1, 1, 1, // Channel 3
-    1, 1, 1, 1, 1, 1, // Channel 2
-    1, 1, 1, 1, 1, 1, // Channel 1
-    1, 1, 1, 1, 1, 1  // Channel 0
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b11111111
 };
 
 //unsigned char gsData[__TLC_GS_SIZE * TLC5940_N] = {
@@ -107,6 +104,11 @@ unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
 
 void TLC5940_Init(void);
 void TLC5940_ClockInDC(void);
+void TLC5940_SetGS_GW_PWM_Initial(void);
 void TLC5940_SetGS_GW_PWM(void);
+void TLC5940_PulseXLAT(void);
+
+void SPI_Init(void);
+int SPI_Write(unsigned char data);
 
 #endif
