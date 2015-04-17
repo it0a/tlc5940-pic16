@@ -7,6 +7,8 @@ void SPI_Init(void) {
     SPI_SDO = 0; //output
     SPI_SS = 0; //output
 
+    SSPCONbits.SSPEN = 0;
+
     SSPSTATbits.CKE = 1;    //data transfer on rising edge clk
     SSPSTATbits.SMP = 1;
     SSPCONbits.SSPM = 0;    //SPI Master mode, clock = FOSC/4
@@ -25,6 +27,7 @@ int SPI_Write(unsigned char data) {
 }
 
 void TLC5940_Init(void) {
+    
     // Set as outputs
     __TLC_BLANK_DIR = 0;
     __TLC_GSCLK_DIR = 0;
@@ -81,7 +84,7 @@ void TLC5940_SetGS_GW_PWM_Initial(void) {
         } else {
             if (!(Data_Counter > __TLC_DATA_COUNTER_MAX)) {
                 if (1) {
-                    __TLC_SIN = 0;
+                    __TLC_SIN = 1;
                 } else {
                     __TLC_SIN = 0;
                 }
