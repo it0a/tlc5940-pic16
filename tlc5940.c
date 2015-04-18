@@ -27,7 +27,6 @@ int SPI_Write(unsigned char data) {
 }
 
 void TLC5940_Init(void) {
-    
     // Set as outputs
     __TLC_BLANK_DIR = 0;
     __TLC_GSCLK_DIR = 0;
