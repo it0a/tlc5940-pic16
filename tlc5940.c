@@ -1,31 +1,6 @@
 #include <xc.h>
 #include "tlc5940.h"
 
-void SPI_Init(void) {
-    SPI_CLK = 0; //output
-    SPI_SDI = 1; //input
-    SPI_SDO = 0; //output
-    SPI_SS = 0; //output
-
-    SSPCONbits.SSPEN = 0;
-
-    SSPSTATbits.CKE = 1;    //data transfer on rising edge clk
-    SSPSTATbits.SMP = 1;
-    SSPCONbits.SSPM = 0;    //SPI Master mode, clock = FOSC/4
-    SSPCONbits.CKP = 0; //Idle state for clock is a low level (Microwire alternate)
-    SSPCONbits.SSPEN = 1;
-    PIR1bits.SSPIF = 0; // Clear interrupt flag
-}
-
-int SPI_Write(unsigned char data) {
-    unsigned char TempVar;
-    TempVar = SSPSTATbits.BF; // Clears BF
-    PIR1bits.SSPIF = 0; // Clear interrupt flag
-    SSPBUF = data; // write byte to SSP1BUF register
-    while(!PIR1bits.SSPIF) {}; // wait until bus cycle complete
-    return ( 0 ); // if WCOL bit is not set return non-negative#
-}
-
 void TLC5940_Init(void) {
     // Set as outputs
     __TLC_BLANK_DIR = 0;
@@ -44,7 +19,8 @@ void TLC5940_Init(void) {
     //
     SPI_Init();
     TLC5940_ClockInDC();
-    TLC5940_SetGS_GW_PWM_Initial();
+    Timer2_Init();
+    //TLC5940_SetGS_GW_PWM_Initial();
 }
 
 void TLC5940_PulseXLAT(void) {
@@ -62,6 +38,7 @@ void TLC5940_ClockInDC(void) {
 }
 
 void TLC5940_SetGS_GW_PWM_Initial(void) {
+    /*
     unsigned char firstCycleFlag = 0;
     unsigned short GSCLK_Counter = 0;
     unsigned char Data_Counter = 0;
@@ -96,9 +73,48 @@ void TLC5940_SetGS_GW_PWM_Initial(void) {
         __TLC_GSCLK = 0;
         GSCLK_Counter++;
     }
+    */
 }
 
 void interrupt high_isr(void) {
+    /*
     TLC5940_PulseXLAT();
+    */
     // KILL YOURSELF
+}
+
+// SPI
+void SPI_Init(void) {
+    SPI_CLK = 0; //output
+    SPI_SDI = 1; //input
+    SPI_SDO = 0; //output
+    SPI_SS = 0; //output
+    SSPCONbits.SSPEN = 0;
+    SSPSTATbits.CKE = 1;    //data transfer on rising edge clk
+    SSPSTATbits.SMP = 1;
+    SSPCONbits.SSPM = 0;    //SPI Master mode, clock = FOSC/4
+    SSPCONbits.CKP = 0; //Idle state for clock is a low level (Microwire alternate)
+    SSPCONbits.SSPEN = 1;
+    PIR1bits.SSPIF = 0; // Clear interrupt flag
+}
+
+int SPI_Write(unsigned char data) {
+    unsigned char TempVar;
+    TempVar = SSPSTATbits.BF; // Clears BF
+    PIR1bits.SSPIF = 0; // Clear interrupt flag
+    SSPBUF = data; // write byte to SSP1BUF register
+    while(!PIR1bits.SSPIF) {}; // wait until bus cycle complete
+    return ( 0 ); // if WCOL bit is not set return non-negative#
+}
+//
+// Timer2 - Pulses GSCLK
+//
+void Timer2_Init(void) {
+    PR2 = 0b00000010;
+    CCPR1L = 0b00000001;
+    CCP1CON = 0b00011100;
+    TMR2 = 0x00;
+    T2CON = 0b00000100;
+    TMR2IF = 0;
+    TMR2IE = 0;
 }

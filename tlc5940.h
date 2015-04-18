@@ -108,7 +108,14 @@ void TLC5940_SetGS_GW_PWM_Initial(void);
 void TLC5940_SetGS_GW_PWM(void);
 void TLC5940_PulseXLAT(void);
 
+// SPI
 void SPI_Init(void);
 int SPI_Write(unsigned char data);
+//
+
+// GSCLK Timer Interrupt
+void Timer2_Init(void);
+// XLAT Pulse Interrupt
+
 
 #endif
