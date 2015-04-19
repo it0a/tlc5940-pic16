@@ -62,10 +62,9 @@
 #endif
 
 #define __TLC_DC_SIZE 12
-#define __TLC_GS_SIZE 192
-#define __TLC_DC_COUNTER_MAX (__TLC_DC_SIZE * TLC5940_N - 1)
-#define __TLC_DATA_COUNTER_MAX (__TLC_GS_SIZE * TLC5940_N - 1)
-#define __TLC_GSCLK_COUNTER_MAX 4095
+#define __TLC_GS_SIZE 24
+#define __TLC_DC_COUNTER_MAX (__TLC_DC_SIZE * TLC5940_N)
+#define __TLC_DATA_COUNTER_MAX (__TLC_GS_SIZE * TLC5940_N)
 
 /// MSB--------->LSB
 unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
@@ -82,6 +81,34 @@ unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
     0b11111111,
     0b11111111
 };
+
+unsigned char gsData[__TLC_GS_SIZE * TLC5940_N] = {
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000001,
+    0b00000000,
+    0b00100000,
+    0b00000100,
+    0b00000000,
+    0b10000000,
+    0b00010000,
+    0b00000010,
+    0b00000000,
+    0b01000000,
+    0b00001000,
+    0b00000001,
+    0b00000000,
+    0b00100000,
+    0b00000100,
+    0b00000000,
+    0b10000000,
+    0b00001111,
+    0b11111111
+};
+
 
 //unsigned char gsData[__TLC_GS_SIZE * TLC5940_N] = {
     //0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Channel 15
@@ -107,6 +134,7 @@ void TLC5940_ClockInDC(void);
 void TLC5940_SetGS_GW_PWM_Initial(void);
 void TLC5940_SetGS_GW_PWM(void);
 void TLC5940_PulseXLAT(void);
+void TLC5940_PulseSCLK(void);
 
 // SPI
 void SPI_Init(void);

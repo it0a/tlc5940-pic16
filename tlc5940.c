@@ -31,10 +31,15 @@ void TLC5940_PulseXLAT(void) {
     __TLC_XLAT = 0;
 }
 
+void TLC5940_PulseSCLK(void) {
+    __TLC_SCLK = 1;
+    __TLC_SCLK = 0;
+}
+
 void TLC5940_ClockInDC(void) {
     __TLC_SIN = 1;
     __TLC_VPRG = 1;
-    for(dcData_t i = 0; i < __TLC_DC_SIZE; i++) {
+    for(dcData_t i = 0; i < __TLC_DC_COUNTER_MAX; i++) {
         SPI_Write(dcData[i]);
     }
     TLC5940_PulseXLAT();
@@ -81,10 +86,27 @@ void TLC5940_SetGS_GW_PWM_Initial(void) {
 
 unsigned char xlatNeedsPulse = 0;
 void interrupt high_isr(void) {
+    unsigned char firstCycleFlag = 0;
+    unsigned char Data_Counter = 0;
     __TLC_BLANK = 1;
+    if (__TLC_VPRG == 1) {
+        __TLC_VPRG = 0;
+        firstCycleFlag = 1;
+    }
     if (xlatNeedsPulse == 1) {
         TLC5940_PulseXLAT();
         xlatNeedsPulse = 0;
+    }
+    if (firstCycleFlag) {
+        TLC5940_PulseSCLK();
+        firstCycleFlag = 0;
+    }
+    __TLC_BLANK = 0;
+    for (;;) {
+        for (int i = 0; i < __TLC_DATA_COUNTER_MAX; i++) {
+            SPI_Write(gsData[i]);
+        }
+        xlatNeedsPulse = 1;
     }
     // Clear interrupt flag so TMR0 can interrupt again
     TMR0IF = 0;
