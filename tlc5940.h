@@ -117,5 +117,6 @@ int SPI_Write(unsigned char data);
 void Timer2_Init(void);
 // XLAT Pulse Interrupt
 
+void Timer0_Init(void);
 
 #endif

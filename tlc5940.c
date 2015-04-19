@@ -16,10 +16,13 @@ void TLC5940_Init(void) {
     __TLC_SIN = 0;
     __TLC_VPRG = 1;
     __TLC_XLAT = 0;
+    GIE = 1;
     //
     SPI_Init();
     TLC5940_ClockInDC();
     Timer2_Init();
+    Timer0_Init();
+
     //TLC5940_SetGS_GW_PWM_Initial();
 }
 
@@ -76,11 +79,15 @@ void TLC5940_SetGS_GW_PWM_Initial(void) {
     */
 }
 
+unsigned char xlatNeedsPulse = 0;
 void interrupt high_isr(void) {
-    /*
-    TLC5940_PulseXLAT();
-    */
-    // KILL YOURSELF
+    __TLC_BLANK = 1;
+    if (xlatNeedsPulse == 1) {
+        TLC5940_PulseXLAT();
+        xlatNeedsPulse = 0;
+    }
+    // Clear interrupt flag so TMR0 can interrupt again
+    TMR0IF = 0;
 }
 
 // SPI
@@ -108,13 +115,24 @@ int SPI_Write(unsigned char data) {
 }
 //
 // Timer2 - Pulses GSCLK
-//
 void Timer2_Init(void) {
-    PR2 = 0b00000010;
+    PR2 = 0b00000011;
     CCPR1L = 0b00000001;
     CCP1CON = 0b00011100;
     TMR2 = 0x00;
     T2CON = 0b00000100;
     TMR2IF = 0;
     TMR2IE = 0;
+}
+
+void Timer0_Init(void) {
+    TMR0 = 0x00;
+    PSA = 0; // Prescale is assigned to Timer0
+    PS2 = 1; // Prescaler Rate Select bits
+    PS1 = 0; // Prescaler Rate Select bits
+    PS0 = 1; // Prescaler Rate Select bits
+    T0SE = 0; // Increment on low-to-high transition on T0CKI pin
+    T0CS = 0; // Transition on internal instruction cycle clock
+    TMR0IE = 1; // Enable interrupts on Timer0
+    T0IF = 0; // Clear interrupt flag for initialization
 }
