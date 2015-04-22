@@ -115,7 +115,9 @@ int SPI_Write(unsigned char data);
 // GSCLK Timer Interrupt
 void Timer2_Init(void);
 // XLAT Pulse Interrupt
-
 void Timer0_Init(void);
+
+unsigned short ChIdx(unsigned char channel);
+void SetChannel(unsigned char channel, unsigned short value);
 
 #endif

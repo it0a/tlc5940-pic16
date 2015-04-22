@@ -114,3 +114,17 @@ void Timer0_Init(void) {
     TMR0IE = 1; // Enable interrupts on Timer0
     T0IF = 0; // Clear interrupt flag for initialization
 }
+
+unsigned short ChIdx(unsigned char channel) {
+    return sizeof(gsData) - 1 - ((12 * channel)/8);
+}
+
+void SetChannel(unsigned char channel, unsigned short brightness) {
+    if (channel % 2 == 0) {
+        gsData[ChIdx(channel)] = brightness & 0xFF;
+        gsData[ChIdx(channel) - 1] = (gsData[ChIdx(channel) - 1] & 0xF0) | ((brightness >> 8) & 0x0F);
+    } else {
+        gsData[ChIdx(channel)] = ((brightness << 4) & 0xF0) | (gsData[ChIdx(channel)] & 0x0F);
+        gsData[ChIdx(channel) - 1] = (brightness >> 4) & 0xFF;
+    }
+}
