@@ -22,8 +22,6 @@ void TLC5940_Init(void) {
     TLC5940_ClockInDC();
     Timer2_Init();
     Timer0_Init();
-
-    //TLC5940_SetGS_GW_PWM_Initial();
 }
 
 void TLC5940_PulseXLAT(void) {
@@ -43,45 +41,6 @@ void TLC5940_ClockInDC(void) {
         SPI_Write(dcData[i]);
     }
     TLC5940_PulseXLAT();
-}
-
-void TLC5940_SetGS_GW_PWM_Initial(void) {
-    /*
-    unsigned char firstCycleFlag = 0;
-    unsigned short GSCLK_Counter = 0;
-    unsigned char Data_Counter = 0;
-    if (__TLC_VPRG == 1) {
-        __TLC_VPRG = 0;
-        firstCycleFlag = 1;
-    }
-    __TLC_BLANK = 0;
-    for (;;) {
-        if (GSCLK_Counter > __TLC_GSCLK_COUNTER_MAX) {
-            __TLC_BLANK = 1;
-            TLC5940_PulseXLAT();
-            if (firstCycleFlag) {
-                __TLC_SCLK = 1;
-                __TLC_SCLK = 0;
-                firstCycleFlag = 0;
-            }
-            break;
-        } else {
-            if (!(Data_Counter > __TLC_DATA_COUNTER_MAX)) {
-                if (1) {
-                    __TLC_SIN = 1;
-                } else {
-                    __TLC_SIN = 0;
-                }
-                __TLC_SCLK = 1;
-                __TLC_SCLK = 0;
-                Data_Counter++;
-            }
-        }
-        __TLC_GSCLK = 1;
-        __TLC_GSCLK = 0;
-        GSCLK_Counter++;
-    }
-    */
 }
 
 unsigned char xlatNeedsPulse = 0;
