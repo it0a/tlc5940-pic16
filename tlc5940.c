@@ -84,8 +84,7 @@ unsigned char xlatNeedsPulse = 0;
 void interrupt high_isr(void)
 {
     // Restart if at the last row
-    if (curRow > maxRow)
-    {
+    if (curRow > 7) {
         curRow = 0;
     }
 
@@ -117,7 +116,7 @@ void interrupt high_isr(void)
 
     // Write GS data
     for (int i = 0; i < __TLC_DATA_COUNTER_MAX; i++) {
-        SPI_Write(gsData[i]);
+        SPI_Write(gsData[curRow][i]);
     }
     xlatNeedsPulse = 1;
     // Clear interrupt flag so TMR0 can interrupt again
@@ -180,9 +179,9 @@ void Timer2_Init(void)
 void Timer0_Init(void) {
     TMR0 = 0x00;
     PSA = 0; // Prescale is assigned to Timer0
-    PS2 = 1; // Prescaler Rate Select bits
-    PS1 = 0; // Prescaler Rate Select bits
-    PS0 = 1; // Prescaler Rate Select bits
+    PS2 = 0; // Prescaler Rate Select bits
+    PS1 = 1; // Prescaler Rate Select bits
+    PS0 = 0; // Prescaler Rate Select bits
     T0SE = 0; // Increment on low-to-high transition on T0CKI pin
     T0CS = 0; // Transition on internal instruction cycle clock
     TMR0IE = 1; // Enable interrupts on Timer0
@@ -199,17 +198,17 @@ unsigned short ChIdx(unsigned char channel)
 
 // void SetChannel(unsigned char channel, unsigned short brightness)
 // Set appropriate channel to the appropriate brightness
-void SetChannel(unsigned char channel, unsigned short brightness)
+void PutPixel(unsigned char x, unsigned char y, unsigned short brightness)
 {
-    if (channel % 2 == 0)
+    if (x % 2 == 0)
     {
-        gsData[ChIdx(channel)] = brightness & 0xFF;
-        gsData[ChIdx(channel) - 1] = (gsData[ChIdx(channel) - 1] & 0xF0) | ((brightness >> 8) & 0x0F);
+        gsData[y][ChIdx(x)] = brightness & 0xFF;
+        gsData[y][ChIdx(x) - 1] = (gsData[y][ChIdx(x) - 1] & 0xF0) | ((brightness >> 8) & 0x0F);
     }
     else
     {
-        gsData[ChIdx(channel)] = ((brightness << 4) & 0xF0) | (gsData[ChIdx(channel)] & 0x0F);
-        gsData[ChIdx(channel) - 1] = (brightness >> 4) & 0xFF;
+        gsData[y][ChIdx(x)] = ((brightness << 4) & 0xF0) | (gsData[y][ChIdx(x)] & 0x0F);
+        gsData[y][ChIdx(x) - 1] = (brightness >> 4) & 0xFF;
     }
 }
 
