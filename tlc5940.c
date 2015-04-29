@@ -83,16 +83,6 @@ unsigned char xlatNeedsPulse = 0;
 // and XLAT at 56 KHz. (230 KHz)/4096 = 56 Hz
 void interrupt high_isr(void)
 {
-    // Restart if at the last row
-    if (curRow > 7) {
-        curRow = 0;
-    }
-
-    // Shift the data to the left by 1
-    // on each row. This will address each
-    // successive LED
-    shiftData(1 << curRow++);
-
     // Keep track of first cycle
     unsigned char firstCycleFlag = 0;
     __TLC_BLANK = 1;
@@ -110,15 +100,25 @@ void interrupt high_isr(void)
     if (xlatNeedsPulse == 1)
     {
         TLC5940_PulseXLAT();
+        // Restart if at the last row
+        if (curRow > 7) {
+            curRow = 0;
+        }
+        // Shift the data to the left by 1
+        // on each row. This will address each
+        // successive LED
+        shiftData(1 << curRow);
         xlatNeedsPulse = 0;
     }
     __TLC_BLANK = 0;
+
 
     // Write GS data
     for (int i = 0; i < __TLC_DATA_COUNTER_MAX; i++) {
         SPI_Write(gsData[curRow][i]);
     }
     xlatNeedsPulse = 1;
+    if (xlatNeedsPulse) curRow++;
     // Clear interrupt flag so TMR0 can interrupt again
     TMR0IF = 0;
 }
@@ -193,22 +193,29 @@ void Timer0_Init(void) {
 // corresponding to a channel on the LED matrix
 unsigned short ChIdx(unsigned char channel)
 {
-    return sizeof(gsData) - 1 - ((12 * channel)/8);
+    return (sizeof(gsData)/8) - 1 - ((12 * channel)/8);
 }
 
 // void SetChannel(unsigned char channel, unsigned short brightness)
 // Set appropriate channel to the appropriate brightness
 void PutPixel(unsigned char x, unsigned char y, unsigned short brightness)
 {
+    unsigned char corrected;
+    if (y == 0) {
+        corrected = 7;
+    } else {
+        corrected = y - 1;
+    }
+
     if (x % 2 == 0)
     {
-        gsData[y][ChIdx(x)] = brightness & 0xFF;
-        gsData[y][ChIdx(x) - 1] = (gsData[y][ChIdx(x) - 1] & 0xF0) | ((brightness >> 8) & 0x0F);
+        gsData[corrected][ChIdx(x)] = brightness & 0xFF;
+        gsData[corrected][ChIdx(x) - 1] = (gsData[corrected][ChIdx(x) - 1] & 0xF0) | ((brightness >> 8) & 0x0F);
     }
     else
     {
-        gsData[y][ChIdx(x)] = ((brightness << 4) & 0xF0) | (gsData[y][ChIdx(x)] & 0x0F);
-        gsData[y][ChIdx(x) - 1] = (brightness >> 4) & 0xFF;
+        gsData[corrected][ChIdx(x)] = ((brightness << 4) & 0xF0) | (gsData[corrected][ChIdx(x)] & 0x0F);
+        gsData[corrected][ChIdx(x) - 1] = (brightness >> 4) & 0xFF;
     }
 }
 
@@ -231,4 +238,11 @@ void PutPixel(unsigned char x, unsigned char y, unsigned short brightness)
 {
     SPI_Write(shiftRegister);
     strobe();
+}
+
+void ClearScreen()
+{
+    for(int i = 0; i < 8; i++)
+        for(int j = 0; j < 12; j++)
+            gsData[i][j]=0;
 }

@@ -175,6 +175,7 @@ void Timer0_Init(void);
 
 unsigned short ChIdx(unsigned char channel);
 void PutPixel(unsigned char y, unsigned char x, unsigned short value);
+void ClearScreen(void);
 
 // MIC5891 functions
 void strobe();
