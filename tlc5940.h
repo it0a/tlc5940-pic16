@@ -1,3 +1,7 @@
+// TLC5940.h
+// TLC5940 library function
+// prototypes and definitions
+
 #ifndef TLC5940_H
 #define TLC5940_H
 
@@ -10,10 +14,11 @@
 
 #define __TLC_LED_N 16 * TLC5940_N
 
-#define SPI_CLK         TRISC3
-#define SPI_SDI         TRISC4
-#define SPI_SDO         TRISC5
-#define SPI_SS          TRISA5
+// PIC16F877 Serial Peripheral Interface pins
+#define SPI_CLK         TRISC3  // RC3
+#define SPI_SDI         TRISC4  // RC4
+#define SPI_SDO         TRISC5  // RC5
+#define SPI_SS          TRISA5  // RA5
 
 
 // GSCLK requires CCP1.
@@ -64,7 +69,12 @@
 #define __TLC_DC_SIZE 12
 #define __TLC_GS_SIZE 24
 #define __TLC_DC_COUNTER_MAX (__TLC_DC_SIZE * TLC5940_N)
-#define __TLC_DATA_COUNTER_MAX (__TLC_GS_SIZE * TLC5940_N)
+#define __TLC_DATA_COUNTER_MAX (12)
+
+// MIC5891 mapping
+#define SOUT_MIC RD2    // Serial out MIC5891
+#define CLK_MIC RD0     // Clock MIC5891
+#define STROBE_MIC RD1  // Strobe MIC5891
 
 /// MSB--------->LSB
 unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
@@ -83,23 +93,18 @@ unsigned char dcData[__TLC_DC_SIZE * TLC5940_N] = {
 };
 
 
+
 // Channel 0 - 1111 1111 1111
 // Channel 1 - 1000 0000 0000
 // Channel 2 - 0100 0000 0000
 // Channel 3 - 0010 0000 0000
-unsigned char gsData[__TLC_GS_SIZE * TLC5940_N] = {
-    0b00000000, 0b00000000,
-    0b00000000, 0b00000000,
-    0b00000000, 0b00000001,
-    0b00000000, 0b00100000,
-    0b00000100, 0b00000000,
-    0b10000000, 0b00010000,
-    0b00000010, 0b00000000,
-    0b01000000, 0b00001000,
-    0b00000001, 0b00000000,
-    0b00100000, 0b00000100,
-    0b00000000, 0b10000000,
-    0b00001111, 0b11111111
+unsigned char gsData[__TLC_DATA_COUNTER_MAX] = {
+    0b11111111, 0b11111111,
+    0b11111111, 0b11111111,
+    0b11111111, 0b11111111,
+    0b11111111, 0b11111111,
+    0b11111111, 0b11111111,
+    0b11111111, 0b11111111
 };
 
 void TLC5940_Init(void);
@@ -107,7 +112,7 @@ void TLC5940_ClockInDC(void);
 void TLC5940_PulseXLAT(void);
 void TLC5940_PulseSCLK(void);
 
-// SPI
+// PIC16F877 SPI - Serial Peripheral Interface
 void SPI_Init(void);
 int SPI_Write(unsigned char data);
 //
@@ -119,5 +124,11 @@ void Timer0_Init(void);
 
 unsigned short ChIdx(unsigned char channel);
 void SetChannel(unsigned char channel, unsigned short value);
+
+// MIC5891 functions
+void strobe();
+void shiftData(unsigned char shiftRegister);
+
+unsigned char maxRow;
 
 #endif
