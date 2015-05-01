@@ -1,4 +1,5 @@
 // TLC5940.c
+// Author: Taylor Pember
 // TLC5940 library functions
 
 #include <xc.h>
@@ -196,7 +197,7 @@ unsigned short ChIdx(unsigned char channel)
     return (sizeof(gsData)/8) - 1 - ((12 * channel)/8);
 }
 
-// void SetChannel(unsigned char channel, unsigned short brightness)
+// void PutPixel(unsigned char channel, unsigned short brightness)
 // Set appropriate channel to the appropriate brightness
 void PutPixel(unsigned char x, unsigned char y, unsigned short brightness)
 {
