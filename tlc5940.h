@@ -1,5 +1,5 @@
 // TLC5940.h
-// Author: Taylor Pember
+// Author: Jordan Gonzalez
 // TLC5940 library function
 // prototypes and definitions
 
