@@ -1,5 +1,5 @@
 // TLC5940.c
-// Author: Taylor Pember
+// Author: Jordan Gonzalez
 // TLC5940 library functions
 
 #include <xc.h>
